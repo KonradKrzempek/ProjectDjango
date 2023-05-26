@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 style="color: #cccccc;">Games</h1>
+    <form method="GET" action="{% url 'game_search' %}">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Search for games" name="q" value="{{ request.GET.q }}">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+    <div class="row">
+        {% for game in games %}
+            <div class="col">
+                <div class="card" style="width: 18rem;">
+                    <img src="{{ game.picture_url }}" class="card-img-top {% if game.is_owned %}grayscale{% endif %}" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ game.title }}</h5>
+                        <p class="card-text">${{ game.price }}</p>
+                        {% if request.user.is_authenticated %}
+                            {% if game.is_owned %}
+                                <button class="btn btn-secondary disabled">Owned</button>
+                            {% else %}
+                                <a class="btn btn-primary show-description" data-toggle="collapse" data-target="#description{{ game.id }}">Show more</a>
+                                <a class="btn btn-primary" href="{% url 'buy_game' game.id %}">Buy</a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">Login to Buy</a>
+                        {% endif %}
+                        <div id="description{{ game.id }}" class="collapse">
+                            <p class="card-text">{{ game.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="alert alert-warning" role="alert">No games found. <a href="{% url 'game_view' %}" class="alert-link">Go back to game view.</a></div>
+        {% endfor %}
+    </div>
+
+    <style>
+        .card {
+            margin-bottom: 25px;
+        }
+
+        .grayscale {
+            filter: grayscale(100%);
+        }
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            $(".show-description").click(function() {
+                var target = $(this).data("target");
+                $(".collapse.show").not(target).collapse("hide");
+                $(target).collapse("toggle");
+            });
+
+            $(".buy-game").click(function() {
+                var gameId = $(this).data("game-id");
+                $.ajax({
+                    url: "{% url 'buy_game' game_id=0 %}".replace('0', gameId),
+                    type: "POST",
+                    data: { game_id: gameId },
+                    success: function(data) {
+                        if (data.success) {
+                            // Reload the page to update the game list
+                            location.reload();
+                        } else {
+                            alert(data.error);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

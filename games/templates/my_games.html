@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 style="color: #cccccc;">My Games</h1>
+    <div class="row">
+        {% for game in games %}
+            <div class="col">
+                <div class="card" style="width: 18rem;">
+                    <img src="{{ game.picture_url }}" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ game.title }}</h5>
+                        <p class="card-text">${{ game.price }}</p>
+                        <a class="btn btn-primary show-description" data-toggle="collapse" data-target="#description{{ game.id }}">Show more</a>
+                        <div id="description{{ game.id }}" class="collapse">
+                            <p class="card-text">{{ game.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No games found.</p>
+        {% endfor %}
+    </div>
+
+    <style>
+        .card {
+            margin-bottom: 25px;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            $(".show-description").click(function() {
+                var target = $(this).data("target");
+                $(".collapse.show").not(target).collapse("hide");
+                $(target).collapse("toggle");
+            });
+        });
+    </script>
+{% endblock %}
